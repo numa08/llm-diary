@@ -7,6 +7,8 @@ local.properties
 
 # Log/OS Files
 *.log
+.DS_Store
+Thumbs.db
 
 # Android Studio generated files and folders
 captures/
@@ -32,3 +34,30 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Secrets / credentials - NEVER commit these
+*.env
+.env.*
+credentials.json
+secrets.json
+*.pem
+*.p12
+*.key
+
+# LLM model files (too large for git)
+*.gguf
+*.bin
+*.ggml
+
+# iOS
+ios/Pods/
+ios/*.xcworkspace
+ios/build/
+ios/DerivedData/
+
+# Xcode
+xcuserdata/
+*.xcscmblueprint
+
+# CocoaPods
+Podfile.lock
