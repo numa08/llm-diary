@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LLM Diary</string>
+    <string name="search_by_date">日付で検索 (例: 2026-03)</string>
+    <string name="share">共有</string>
+    <string name="back">戻る</string>
+</resources>
