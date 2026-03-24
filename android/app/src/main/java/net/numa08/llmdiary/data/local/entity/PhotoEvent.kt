@@ -12,4 +12,5 @@ data class PhotoEvent(
     val latitude: Double? = null,
     val longitude: Double? = null,
     val address: String? = null,
+    val description: String? = null,
 )

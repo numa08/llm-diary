@@ -110,6 +110,9 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
 
+    // Google AI Edge (Gemini Nano on-device)
+    implementation(libs.ai.edge.aicore)
+
     // Markdown
     implementation(libs.markwon.core)
 }

@@ -18,6 +18,7 @@ navigationCompose = "2.8.5"
 markwon = "4.6.2"
 coroutines = "1.9.0"
 datastorePreferences = "1.1.1"
+aiEdgeAicore = "0.0.3"
 googlePlayServicesActivityRecognition = "18.1.0"
 
 [libraries]
@@ -65,6 +66,9 @@ play-services-activity-recognition = { group = "com.google.android.gms", name = 
 
 # DataStore
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastorePreferences" }
+
+# Google AI Edge (Gemini Nano on-device)
+ai-edge-aicore = { group = "com.google.ai.edge.aicore", name = "aicore", version.ref = "aiEdgeAicore" }
 
 # Markdown rendering
 markwon-core = { group = "io.noties.markwon", name = "core", version.ref = "markwon" }

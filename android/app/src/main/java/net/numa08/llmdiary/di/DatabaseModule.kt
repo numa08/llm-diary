@@ -33,6 +33,7 @@ object DatabaseModule {
             "llm_diary.db",
         )
             .openHelperFactory(factory)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
     }
 

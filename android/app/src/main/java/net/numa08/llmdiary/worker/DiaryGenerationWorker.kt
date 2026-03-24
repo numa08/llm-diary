@@ -1,6 +1,7 @@
 package net.numa08.llmdiary.worker
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -11,6 +12,7 @@ import net.numa08.llmdiary.domain.repository.DiaryRepository
 import net.numa08.llmdiary.domain.repository.EventRepository
 import net.numa08.llmdiary.health.HealthConnectManager
 import net.numa08.llmdiary.llm.DiaryGenerator
+import net.numa08.llmdiary.llm.ImageDescriber
 import net.numa08.llmdiary.llm.LlmEngine
 import java.time.LocalDate
 import java.time.ZoneId
@@ -25,6 +27,7 @@ class DiaryGenerationWorker @AssistedInject constructor(
     private val healthConnectManager: HealthConnectManager,
     private val diaryGenerator: DiaryGenerator,
     private val llmEngine: LlmEngine,
+    private val imageDescriber: ImageDescriber,
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -44,6 +47,9 @@ class DiaryGenerationWorker @AssistedInject constructor(
             val zone = ZoneId.systemDefault()
             val startOfDay = yesterday.atStartOfDay(zone).toInstant().toEpochMilli()
             val endOfDay = yesterday.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+
+            // Retry image description for photos that failed earlier
+            describeUndescribedPhotos()
 
             // Collect all events
             val activities = eventRepository.getActivityEventsForDay(startOfDay, endOfDay)
@@ -75,11 +81,29 @@ class DiaryGenerationWorker @AssistedInject constructor(
 
             Result.success()
         } catch (e: Exception) {
+            Log.e(TAG, "Diary generation failed", e)
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
     }
 
+    /**
+     * 説明が未生成の写真に対して Gemini Nano で再試行する。
+     */
+    private suspend fun describeUndescribedPhotos() {
+        val undescribed = eventRepository.getPhotoEventsWithoutDescription()
+        if (undescribed.isEmpty()) return
+
+        Log.i(TAG, "Retrying image description for ${undescribed.size} photos")
+        for (photo in undescribed) {
+            val description = imageDescriber.describe(photo.uri)
+            if (description != null) {
+                eventRepository.updatePhotoDescription(photo.id, description)
+            }
+        }
+    }
+
     companion object {
+        private const val TAG = "DiaryGenerationWorker"
         const val KEY_MODEL_PATH = "model_path"
         const val WORK_NAME = "diary_generation"
     }

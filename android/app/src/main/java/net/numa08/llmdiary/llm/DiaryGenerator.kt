@@ -1,10 +1,6 @@
 package net.numa08.llmdiary.llm
 
-import android.content.Context
-import android.graphics.BitmapFactory
-import android.net.Uri
 import com.google.android.gms.location.DetectedActivity
-import dagger.hilt.android.qualifiers.ApplicationContext
 import net.numa08.llmdiary.data.local.entity.ActivityEvent
 import net.numa08.llmdiary.data.local.entity.HealthData
 import net.numa08.llmdiary.data.local.entity.LocationEvent
@@ -17,7 +13,6 @@ import javax.inject.Singleton
 
 @Singleton
 class DiaryGenerator @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val llmEngine: LlmEngine,
 ) {
     private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
@@ -31,18 +26,7 @@ class DiaryGenerator @Inject constructor(
         date: String,
     ): String {
         val prompt = buildPrompt(activities, locations, photos, healthData, date)
-
-        val images = photos.mapNotNull { photo ->
-            try {
-                context.contentResolver.openInputStream(Uri.parse(photo.uri))?.use { stream ->
-                    BitmapFactory.decodeStream(stream)
-                }
-            } catch (_: Exception) {
-                null
-            }
-        }
-
-        return llmEngine.generateText(prompt, images)
+        return llmEngine.generateText(prompt)
     }
 
     private fun buildPrompt(
@@ -80,11 +64,15 @@ class DiaryGenerator @Inject constructor(
 
         if (photos.isNotEmpty()) {
             appendLine("## 撮影した写真 (${photos.size}枚)")
-            appendLine("添付された写真も参考にして、何を撮影したのか推測して日記に含めてください。")
             photos.forEach { photo ->
                 val time = timeFormatter.format(Instant.ofEpochMilli(photo.timestamp))
                 val location = photo.address ?: photo.latitude?.let { "($it, ${photo.longitude})" } ?: ""
-                appendLine("- $time: 写真撮影 $location")
+                val desc = photo.description
+                if (desc != null) {
+                    appendLine("- $time: $desc $location")
+                } else {
+                    appendLine("- $time: 写真撮影 $location")
+                }
             }
             appendLine()
         }

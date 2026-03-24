@@ -2,6 +2,8 @@ package net.numa08.llmdiary.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import net.numa08.llmdiary.data.local.dao.ActivityEventDao
 import net.numa08.llmdiary.data.local.dao.DiaryEntryDao
 import net.numa08.llmdiary.data.local.dao.HealthDataDao
@@ -21,10 +23,18 @@ import net.numa08.llmdiary.data.local.entity.PhotoEvent
         HealthData::class,
         DiaryEntry::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
+
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE photo_events ADD COLUMN description TEXT DEFAULT NULL")
+            }
+        }
+    }
     abstract fun activityEventDao(): ActivityEventDao
     abstract fun locationEventDao(): LocationEventDao
     abstract fun photoEventDao(): PhotoEventDao

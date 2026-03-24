@@ -26,8 +26,14 @@ class EventRepositoryImpl @Inject constructor(
     override suspend fun insertLocationEvent(event: LocationEvent) =
         locationEventDao.insert(event)
 
-    override suspend fun insertPhotoEvent(event: PhotoEvent) =
+    override suspend fun insertPhotoEvent(event: PhotoEvent): Long =
         photoEventDao.insert(event)
+
+    override suspend fun updatePhotoDescription(id: Long, description: String) =
+        photoEventDao.updateDescription(id, description)
+
+    override suspend fun getPhotoEventsWithoutDescription(): List<PhotoEvent> =
+        photoEventDao.getEventsWithoutDescription()
 
     override suspend fun getActivityEventsForDay(startOfDay: Long, endOfDay: Long) =
         activityEventDao.getEventsForDay(startOfDay, endOfDay)

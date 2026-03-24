@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +14,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import net.numa08.llmdiary.data.local.entity.PhotoEvent
 import net.numa08.llmdiary.domain.repository.EventRepository
+import net.numa08.llmdiary.llm.ImageDescriber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -20,6 +22,7 @@ import javax.inject.Singleton
 class PhotoObserver @Inject constructor(
     @ApplicationContext private val context: Context,
     private val eventRepository: EventRepository,
+    private val imageDescriber: ImageDescriber,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -65,13 +68,25 @@ class PhotoObserver @Inject constructor(
                     cursor.getColumnIndexOrThrow(MediaStore.Images.Media.LONGITUDE)
                 )
 
+                val uriString = uri.toString()
+
+                // Gemini Nano で画像をテキスト化
+                val description = imageDescriber.describe(uriString)
+
                 val event = PhotoEvent(
                     timestamp = dateAdded * 1000,
-                    uri = uri.toString(),
+                    uri = uriString,
                     latitude = if (lat != 0.0) lat else null,
                     longitude = if (lon != 0.0) lon else null,
+                    description = description,
                 )
-                eventRepository.insertPhotoEvent(event)
+                val id = eventRepository.insertPhotoEvent(event)
+
+                if (description != null) {
+                    Log.i("PhotoObserver", "Photo saved with description (id=$id)")
+                } else {
+                    Log.w("PhotoObserver", "Photo saved without description (id=$id), will retry later")
+                }
             }
         }
     }
