@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
@@ -35,6 +37,7 @@ import net.numa08.llmdiary.data.local.entity.DiaryEntry
 @Composable
 fun DiaryListScreen(
     onDiaryClick: (Long) -> Unit,
+    onSettingsClick: () -> Unit,
     viewModel: DiaryListViewModel = hiltViewModel(),
 ) {
     val diaries by viewModel.diaries.collectAsState()
@@ -45,6 +48,11 @@ fun DiaryListScreen(
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = onSettingsClick) {
+                        Icon(Icons.Default.Settings, contentDescription = "設定")
+                    }
+                },
             )
         },
     ) { padding ->

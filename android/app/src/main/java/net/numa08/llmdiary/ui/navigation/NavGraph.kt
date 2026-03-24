@@ -8,10 +8,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import net.numa08.llmdiary.ui.diary.detail.DiaryDetailScreen
 import net.numa08.llmdiary.ui.diary.list.DiaryListScreen
+import net.numa08.llmdiary.ui.settings.SettingsScreen
 
 object Routes {
     const val DIARY_LIST = "diary_list"
     const val DIARY_DETAIL = "diary_detail/{diaryId}"
+    const val SETTINGS = "settings"
 
     fun diaryDetail(diaryId: Long) = "diary_detail/$diaryId"
 }
@@ -24,6 +26,9 @@ fun NavGraph(navController: NavHostController) {
                 onDiaryClick = { diaryId ->
                     navController.navigate(Routes.diaryDetail(diaryId))
                 },
+                onSettingsClick = {
+                    navController.navigate(Routes.SETTINGS)
+                },
             )
         }
         composable(
@@ -31,6 +36,11 @@ fun NavGraph(navController: NavHostController) {
             arguments = listOf(navArgument("diaryId") { type = NavType.LongType }),
         ) {
             DiaryDetailScreen(
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
                 onBack = { navController.popBackStack() },
             )
         }

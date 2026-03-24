@@ -8,5 +8,10 @@
 -keep class net.sqlcipher.** { *; }
 -keep class net.sqlcipher.database.* { *; }
 
+# LlamaCpp JNI
+-keep class net.numa08.llmdiary.llm.LlamaCppEngine {
+    native <methods>;
+}
+
 # Markwon
 -keep class io.noties.markwon.** { *; }

@@ -9,6 +9,7 @@ plugins {
 android {
     namespace = "net.numa08.llmdiary"
     compileSdk = 35
+    ndkVersion = "27.0.12077973"
 
     defaultConfig {
         applicationId = "net.numa08.llmdiary"
@@ -18,6 +19,24 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters += listOf("arm64-v8a", "x86_64")
+        }
+
+        externalNativeBuild {
+            cmake {
+                arguments("-DLLAMA_NATIVE=OFF")
+                cppFlags("-std=c++17")
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
 
     buildTypes {
@@ -87,6 +106,9 @@ dependencies {
     // Location & Activity Recognition
     implementation(libs.play.services.location)
     implementation(libs.play.services.activity.recognition)
+
+    // DataStore
+    implementation(libs.androidx.datastore.preferences)
 
     // Markdown
     implementation(libs.markwon.core)

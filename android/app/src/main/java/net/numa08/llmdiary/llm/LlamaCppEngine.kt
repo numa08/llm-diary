@@ -1,35 +1,58 @@
 package net.numa08.llmdiary.llm
 
 import android.graphics.Bitmap
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * llama.cpp ベースの LLM エンジン実装。
- * TODO: llama.cpp Android バインディングの統合。
- * 現在はスタブ実装。実際の推論ロジックは llama.cpp の JNI バインディングに依存する。
+ * JNI 経由で llama.cpp のネイティブライブラリを呼び出す。
  */
 @Singleton
 class LlamaCppEngine @Inject constructor() : LlmEngine {
 
-    private var loaded = false
+    companion object {
+        private const val TAG = "LlamaCppEngine"
+        private const val MAX_TOKENS = 1024
 
-    override suspend fun loadModel(modelPath: String) {
-        // TODO: llama.cpp の llama_load_model_from_file を JNI 経由で呼び出す
-        loaded = true
+        init {
+            System.loadLibrary("llm_diary_jni")
+        }
     }
 
-    override suspend fun generateText(prompt: String, images: List<Bitmap>): String {
-        check(loaded) { "Model is not loaded. Call loadModel() first." }
-        // TODO: llama.cpp の llama_decode / llama_sampling を JNI 経由で呼び出す
-        // マルチモーダルの場合は llava 等のプロジェクションレイヤーを使用
-        return "（LLM推論はまだ実装されていません）"
+    // JNI native methods
+    private external fun nativeLoadModel(modelPath: String)
+    private external fun nativeGenerateText(prompt: String, maxTokens: Int): String
+    private external fun nativeUnloadModel()
+    private external fun nativeIsModelLoaded(): Boolean
+
+    override suspend fun loadModel(modelPath: String) = withContext(Dispatchers.IO) {
+        Log.i(TAG, "Loading model: $modelPath")
+        nativeLoadModel(modelPath)
+        Log.i(TAG, "Model loaded successfully")
     }
 
-    override suspend fun unloadModel() {
-        // TODO: llama_free でモデルを解放
-        loaded = false
+    override suspend fun generateText(prompt: String, images: List<Bitmap>): String =
+        withContext(Dispatchers.IO) {
+            check(isModelLoaded()) { "Model is not loaded. Call loadModel() first." }
+
+            if (images.isNotEmpty()) {
+                Log.w(TAG, "Image input is not yet supported in llama.cpp engine, ignoring ${images.size} images")
+            }
+
+            Log.i(TAG, "Generating text (prompt length: ${prompt.length} chars)")
+            val result = nativeGenerateText(prompt, MAX_TOKENS)
+            Log.i(TAG, "Generation complete (${result.length} chars)")
+            result
+        }
+
+    override suspend fun unloadModel() = withContext(Dispatchers.IO) {
+        Log.i(TAG, "Unloading model")
+        nativeUnloadModel()
     }
 
-    override fun isModelLoaded(): Boolean = loaded
+    override fun isModelLoaded(): Boolean = nativeIsModelLoaded()
 }
